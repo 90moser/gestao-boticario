@@ -247,6 +247,27 @@ const [stockSortBy, setStockSortBy] = useState('name');
 const [purchaseHistorySearch, setPurchaseHistorySearch] = useState('');
 const [purchaseHistoryDateFrom, setPurchaseHistoryDateFrom] = useState('');
 const [purchaseHistoryDateTo, setPurchaseHistoryDateTo] = useState('');
+            // ==================== CONFIGURAÇÕES ====================
+            const [lowStockThreshold, setLowStockThreshold] = useState(3);
+            const [expiryAlertDays, setExpiryAlertDays] = useState(30);
+            const [staleProductDays, setStaleProductDays] = useState(30);
+
+            // ==================== FILTROS ====================
+            const [productSearchTerm, setProductSearchTerm] = useState('');
+            const [productCategoryFilter, setProductCategoryFilter] = useState('todos');
+            const [productStatusFilter, setProductStatusFilter] = useState('todos');
+            const [productExpiryFilter, setProductExpiryFilter] = useState('all');
+            const [productSortBy, setProductSortBy] = useState('name');
+
+            const [stockSearchTerm, setStockSearchTerm] = useState('');
+            const [stockCategoryFilter, setStockCategoryFilter] = useState('todos');
+            const [stockStatusFilter, setStockStatusFilter] = useState('todos');
+            const [stockExpiryFilter, setStockExpiryFilter] = useState('all');
+            const [stockSortBy, setStockSortBy] = useState('name');
+            
+            const [purchaseHistorySearch, setPurchaseHistorySearch] = useState('');
+            const [purchaseHistoryDateFrom, setPurchaseHistoryDateFrom] = useState('');
+            const [purchaseHistoryDateTo, setPurchaseHistoryDateTo] = useState('');
             // Estados Firebase
             const [firebaseConnected, setFirebaseConnected] = useState(false);
             const [cloudSyncEnabled, setCloudSyncEnabled] = useState(false);
