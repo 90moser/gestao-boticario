@@ -73,7 +73,8 @@
         const formatDate = (date) => new Date(date).toLocaleDateString('pt-PT');
         const calculateDaysUntilExpiry = (expiryDate) => {
             const today = new Date();
-            const expiry = new Date(expiryDate);
+            today.setHours(0, 0, 0, 0);
+            const expiry = new Date(expiryDate + 'T00:00:00');
             const diffTime = expiry - today;
             return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         };
@@ -85,7 +86,10 @@
         };
         const calculateDaysSince = (date) => {
             const today = new Date();
-            const target = new Date(date);
+            today.setHours(0, 0, 0, 0);
+            const dateStr = date.length === 10 ? date + 'T00:00:00' : date;
+            const target = new Date(dateStr);
+            target.setHours(0, 0, 0, 0);
             const diffTime = today - target;
             return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         };
@@ -415,10 +419,12 @@
                     const daysToExpiry = p.expiryDate ? calculateDaysUntilExpiry(p.expiryDate) : null;
                     if (searchTerm && !p.name.toLowerCase().includes(searchTerm.toLowerCase())) return false;
                     if (categoryFilter !== 'todos' && p.category !== categoryFilter) return false;
-                    if (statusFilter === 'ok' && stock >= lowStockThreshold) return true;
-                    if (statusFilter === 'low' && stock > 0 && stock < lowStockThreshold) return true;
-                    if (statusFilter === 'out' && stock === 0) return true;
-                    if (statusFilter !== 'todos' && statusFilter !== 'ok' && statusFilter !== 'low' && statusFilter !== 'out') return false;
+                    if (statusFilter !== 'todos') {
+                        const matchesStatus = (statusFilter === 'ok' && stock >= lowStockThreshold) ||
+                                              (statusFilter === 'low' && stock > 0 && stock < lowStockThreshold) ||
+                                              (statusFilter === 'out' && stock === 0);
+                        if (!matchesStatus) return false;
+                    }
                     if (expiryFilter === 'no-expiry' && !p.expiryDate) return true;
                     if (expiryFilter === 'no-expiry' && p.expiryDate) return false;
                     if (expiryFilter !== 'all' && expiryFilter !== 'no-expiry' && daysToExpiry !== null && daysToExpiry <= parseInt(expiryFilter)) return true;
@@ -566,15 +572,15 @@
             const fileInputRef = useRef(null);
             // ==================== HANDLERS ====================
             const handleAddProduct = () => {
-                if (!productForm.name) { alert('Nome obrigatório!'); return; }
-                setProducts([...products, { id: generateId(), ...productForm, catalogPrice: parseFloat(productForm.catalogPrice) || 0, createdAt: new Date().toISOString() }]);
+                if (!productForm.name.trim()) { alert('Nome obrigatório!'); return; }
+                setProducts([...products, { id: generateId(), ...productForm, name: productForm.name.trim(), catalogPrice: parseFloat(productForm.catalogPrice) || 0, createdAt: new Date().toISOString() }]);
                 setProductForm({ name: '', category: 'perfumaria', fragrance: '', expiryDate: '', cycle: '', catalogPrice: '' });
                 setShowProductModal(false);
             };
 
             const handleEditProduct = () => {
-                if (!editingProduct || !productForm.name) { alert('Nome obrigatório!'); return; }
-                setProducts(products.map(p => p.id === editingProduct.id ? { ...p, ...productForm, catalogPrice: parseFloat(productForm.catalogPrice) || 0 } : p));
+                if (!editingProduct || !productForm.name.trim()) { alert('Nome obrigatório!'); return; }
+                setProducts(products.map(p => p.id === editingProduct.id ? { ...p, ...productForm, name: productForm.name.trim(), catalogPrice: parseFloat(productForm.catalogPrice) || 0 } : p));
                 setEditingProduct(null);
                 setProductForm({ name: '', category: 'perfumaria', fragrance: '', expiryDate: '', cycle: '', catalogPrice: '' });
                 setShowEditProductModal(false);
@@ -595,15 +601,15 @@
             };
 
             const handleAddCustomer = () => {
-                if (!customerForm.name) { alert('Nome obrigatório!'); return; }
-                setCustomers([...customers, { id: generateId(), ...customerForm, createdAt: new Date().toISOString() }]);
+                if (!customerForm.name.trim()) { alert('Nome obrigatório!'); return; }
+                setCustomers([...customers, { id: generateId(), ...customerForm, name: customerForm.name.trim(), createdAt: new Date().toISOString() }]);
                 setCustomerForm({ name: '', phone: '', email: '' });
                 setShowCustomerModal(false);
             };
 
             const handleEditCustomer = () => {
-                if (!editingCustomer || !customerForm.name) { alert('Nome obrigatório!'); return; }
-                setCustomers(customers.map(c => c.id === editingCustomer.id ? { ...c, ...customerForm } : c));
+                if (!editingCustomer || !customerForm.name.trim()) { alert('Nome obrigatório!'); return; }
+                setCustomers(customers.map(c => c.id === editingCustomer.id ? { ...c, ...customerForm, name: customerForm.name.trim() } : c));
                 setEditingCustomer(null);
                 setCustomerForm({ name: '', phone: '', email: '' });
                 setShowEditCustomerModal(false);
@@ -624,15 +630,15 @@
             };
 
             const handleAddReseller = () => {
-                if (!resellerForm.name || !resellerForm.salonName) { alert('Nome e Salão obrigatórios!'); return; }
-                setResellers([...resellers, { id: generateId(), ...resellerForm, commissionRate: parseFloat(resellerForm.commissionRate) || 25, createdAt: new Date().toISOString(), status: 'ativo' }]);
+                if (!resellerForm.name.trim() || !resellerForm.salonName.trim()) { alert('Nome e Salão obrigatórios!'); return; }
+                setResellers([...resellers, { id: generateId(), ...resellerForm, name: resellerForm.name.trim(), salonName: resellerForm.salonName.trim(), commissionRate: parseFloat(resellerForm.commissionRate) || 25, createdAt: new Date().toISOString(), status: 'ativo' }]);
                 setResellerForm({ name: '', salonName: '', address: '', phone: '', email: '', commissionRate: 25 });
                 setShowResellerModal(false);
             };
 
             const handleEditReseller = () => {
-                if (!editingReseller || !resellerForm.name) { alert('Nome obrigatório!'); return; }
-                setResellers(resellers.map(r => r.id === editingReseller.id ? { ...r, ...resellerForm, commissionRate: parseFloat(resellerForm.commissionRate) || 25 } : r));
+                if (!editingReseller || !resellerForm.name.trim()) { alert('Nome obrigatório!'); return; }
+                setResellers(resellers.map(r => r.id === editingReseller.id ? { ...r, ...resellerForm, name: resellerForm.name.trim(), salonName: resellerForm.salonName.trim(), commissionRate: parseFloat(resellerForm.commissionRate) || 25 } : r));
                 setEditingReseller(null);
                 setResellerForm({ name: '', salonName: '', address: '', phone: '', email: '', commissionRate: 25 });
                 setShowEditResellerModal(false);
@@ -725,6 +731,7 @@
 
             const handleAdjustStock = () => {
                 if (!adjustStockProduct || !adjustStockForm.quantity || adjustStockForm.quantity <= 0) { alert('Dados inválidos!'); return; }
+                if (adjustStockForm.type === 'saida' && calculateStock(adjustStockProduct.id) < parseInt(adjustStockForm.quantity)) { alert('Quantidade de saída superior ao stock disponível!'); return; }
                 setStockAdjustments([...stockAdjustments, { id: generateId(), productId: adjustStockProduct.id, productName: adjustStockProduct.name, ...adjustStockForm, quantity: parseInt(adjustStockForm.quantity), date: adjustStockForm.date || new Date().toISOString().split('T')[0], createdAt: new Date().toISOString() }]);
                 setAdjustStockProduct(null);
                 setAdjustStockForm({ type: 'saida', reason: 'quebra', quantity: 1, notes: '', date: new Date().toISOString().split('T')[0] });
@@ -1064,11 +1071,11 @@
                                         <p className="text-2xl font-bold">{formatCurrency(resellerSales.reduce((sum, s) => sum + s.totalSale, 0))}</p>
                                     </div>
                                     <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg p-4">
-                                        <p className="text-blue-100 text-sm">Seu Ganho (75%)</p>
+                                        <p className="text-blue-100 text-sm">Seu Ganho Total</p>
                                         <p className="text-2xl font-bold">{formatCurrency(resellerSales.reduce((sum, s) => sum + s.yourEarnings, 0))}</p>
                                     </div>
                                     <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg p-4">
-                                        <p className="text-orange-100 text-sm">Comissões (25%)</p>
+                                        <p className="text-orange-100 text-sm">Comissões Totais</p>
                                         <p className="text-2xl font-bold">{formatCurrency(resellerSales.reduce((sum, s) => sum + s.commission, 0))}</p>
                                     </div>
                                 </div>
@@ -1088,8 +1095,8 @@
                                                 </div>
                                                 <div className="flex gap-1">
                                                     <button onClick={() => { setSelectedReseller(null); setTransferForm({ ...transferForm, quantity: 1 }); setShowTransferModal(true); }} className="btn-transfer text-white px-2 py-1 rounded text-xs" title="Transferir"><i className="fas fa-exchange-alt"></i></button>
-                                                    <button onClick={() => { setSelectedReseller(r); setShowResellerSaleModal(true); }} className="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-xs" title="Venda"><i className="fas fa-shopping-cart"></i></button>
-                                                    <button onClick={() => { setSelectedReseller(r); setShowReturnModal(true); }} className="bg-orange-600 hover:bg-orange-700 text-white px-2 py-1 rounded text-xs" title="Devolução"><i className="fas fa-undo"></i></button>
+                                                    <button onClick={() => { setSelectedReseller(r); setResellerSaleForm({ resellerId: r.id, productId: '', quantity: 1, salePrice: 0, date: new Date().toISOString().split('T')[0] }); setShowResellerSaleModal(true); }} className="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-xs" title="Venda"><i className="fas fa-shopping-cart"></i></button>
+                                                    <button onClick={() => { setSelectedReseller(r); setReturnForm({ resellerId: r.id, productId: '', quantity: 1, date: new Date().toISOString().split('T')[0] }); setShowReturnModal(true); }} className="bg-orange-600 hover:bg-orange-700 text-white px-2 py-1 rounded text-xs" title="Devolução"><i className="fas fa-undo"></i></button>
                                                     <button onClick={() => openEditReseller(r)} className="btn-edit text-white px-2 py-1 rounded text-xs" title="Editar"><i className="fas fa-edit"></i></button>
                                                     <button onClick={() => confirmDeleteReseller(r)} className="btn-delete text-white px-2 py-1 rounded text-xs" title="Excluir"><i className="fas fa-trash"></i></button>
                                                 </div>
@@ -1100,8 +1107,8 @@
                                                 <p><i className="fas fa-percentage mr-2 text-gray-400"></i>Comissão: {r.commissionRate}%</p>
                                                 <div className="pt-2 border-t">
                                                     <div className="flex justify-between"><span className="text-gray-500">Vendas:</span><span className="font-bold">{formatCurrency(r.totalSales)}</span></div>
-                                                    <div className="flex justify-between"><span className="text-gray-500">Seu ganho (75%):</span><span className="font-bold text-green-600">{formatCurrency(r.yourEarnings)}</span></div>
-                                                    <div className="flex justify-between"><span className="text-gray-500">Comissão (25%):</span><span className="font-bold text-orange-600">{formatCurrency(r.commission)}</span></div>
+                                                    <div className="flex justify-between"><span className="text-gray-500">Seu ganho ({100 - r.commissionRate}%):</span><span className="font-bold text-green-600">{formatCurrency(r.yourEarnings)}</span></div>
+                                                    <div className="flex justify-between"><span className="text-gray-500">Comissão ({r.commissionRate}%):</span><span className="font-bold text-orange-600">{formatCurrency(r.commission)}</span></div>
                                                     <div className="flex justify-between mt-2 pt-2 border-t"><span className="text-gray-500">Produtos em stock:</span><span className="font-bold">{r.productsCount}</span></div>
                                                 </div>
                                             </div>
@@ -1744,7 +1751,7 @@
                                 <div className="p-4 bg-green-50 rounded-lg space-y-2">
                                     <p className="text-sm"><strong>Total Venda:</strong> {formatCurrency(resellerSaleForm.salePrice * resellerSaleForm.quantity)}</p>
                                     <p className="text-sm text-orange-600"><strong>Comissão ({selectedReseller.commissionRate}%):</strong> {formatCurrency((resellerSaleForm.salePrice * resellerSaleForm.quantity) * (selectedReseller.commissionRate / 100))}</p>
-                                    <p className="text-sm text-green-600 font-bold"><strong>Seu Ganho (75%):</strong> {formatCurrency((resellerSaleForm.salePrice * resellerSaleForm.quantity) * ((100 - selectedReseller.commissionRate) / 100))}</p>
+                                    <p className="text-sm text-green-600 font-bold"><strong>Seu Ganho ({100 - selectedReseller.commissionRate}%):</strong> {formatCurrency((resellerSaleForm.salePrice * resellerSaleForm.quantity) * ((100 - selectedReseller.commissionRate) / 100))}</p>
                                 </div>
                             )}
                             <button onClick={handleResellerSale} className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg transition">
